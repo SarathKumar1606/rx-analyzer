@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.env
+.env.*
+venv/
+.venv/
+
+# Node / Next.js
+my-app/node_modules/
+my-app/.next/
+my-app/.env*
+my-app/.vercel
+my-app/.DS_Store
+
+# Local data and artifacts
+saved-state-restore/
+backend/uploads/
+backend/outputs/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
