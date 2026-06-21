@@ -13,3 +13,14 @@ services:
         sync: false
         value: ""
     autoDeploy: true
+
+  - name: rx-analyzer-frontend
+    type: web
+    env: node
+    plan: free
+    root: my-app
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    healthCheckPath: /
+    autoDeploy: true
