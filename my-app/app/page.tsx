@@ -20,7 +20,14 @@ export default function Chat() {
     await sendQuestion(trimmed);
   };
 
-  const sendQuestion = async (question: string) => {
+  // ref to track temporary status message index during long-running analyze
+  const statusIdRef = useRef<string | null>(null);
+  const statusTimestampRef = useRef<number | null>(null);
+
+  const sendQuestion = async (
+    question: string,
+    options?: { replaceStatus?: boolean; statusId?: string; skipAddUser?: boolean }
+  ) => {
     if (!file) {
       alert('Please upload a prescription first');
       return;
@@ -33,22 +40,64 @@ export default function Chat() {
     formData.append('question', question);
     formData.append('history', JSON.stringify(messages));
 
+    // use AbortController to implement a timeout
+    const controller = new AbortController();
+    const timeoutMs = 60000; // 60s
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
     try {
       const res = await fetch(`${API_BASE_URL}/analyze`, {
         method: 'POST',
         body: formData,
+        signal: controller.signal,
       });
+
+      clearTimeout(timeout);
+
+      if (!res.ok) throw new Error(`Server returned ${res.status}`);
 
       const data = await res.json();
 
-      setMessages((prev) => [
-        ...prev,
-        { role: 'user', content: question },
-        { role: 'assistant', content: data.analysis || 'No analysis returned' },
-      ]);
-    } catch (error) {
+      if (options?.replaceStatus && options.statusId) {
+        const sid = options.statusId;
+        // ensure the status message is visible for at least 5-7 seconds
+        const minMs = 5000 + Math.floor(Math.random() * 2000); // 5000-7000ms
+        const start = statusTimestampRef.current || Date.now();
+        const elapsed = Date.now() - start;
+        if (elapsed < minMs) {
+          await new Promise((resolve) => setTimeout(resolve, minMs - elapsed));
+        }
+        // Replace message by statusId
+        setMessages((prev) => {
+          const next = prev.map((m) => (m && (m as any).id === sid ? { role: 'assistant', content: data.analysis || 'No analysis returned', id: sid } : m));
+          // if no replacement happened, append result
+          const found = next.some((m) => (m && (m as any).id === sid && m.role === 'assistant'));
+          if (!found) next.push({ role: 'assistant', content: data.analysis || 'No analysis returned', id: sid });
+          return next;
+        });
+        statusIdRef.current = null;
+        statusTimestampRef.current = null;
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          { role: 'user', content: question },
+          { role: 'assistant', content: data.analysis || 'No analysis returned' },
+        ]);
+      }
+    } catch (error: any) {
+      clearTimeout(timeout);
       console.error('Error:', error);
-      alert('Failed to analyze prescription. See console for details.');
+      // if aborted due to timeout
+      const errMsg = error.name === 'AbortError' ? 'Analysis timed out. Please try again.' : 'Failed to analyze prescription. See console for details.';
+      if (options?.replaceStatus && options.statusId) {
+        const sid = options.statusId;
+        // For errors/timeouts, replace status immediately with error message
+        setMessages((prev) => prev.map((m) => (m && (m as any).id === sid ? { role: 'assistant', content: errMsg, id: sid } : m)));
+        statusIdRef.current = null;
+        statusTimestampRef.current = null;
+      } else {
+        alert(errMsg);
+      }
     }
 
     setLoading(false);
@@ -61,7 +110,18 @@ export default function Chat() {
       return;
     }
 
-    await sendQuestion('Analyze prescription');
+    // Add an immediate user + temporary assistant status message so the UI shows
+    // "Running PyOCR models and extracting text, running inference..." while backend works.
+    const statusId = `status-${Date.now()}`;
+    setMessages((prev) => {
+      const userMsg = { role: 'user', content: 'Analyze prescription' };
+      const statusMsg = { role: 'assistant', content: 'Running PyOCR models and extracting text, running inference... ⏳', id: statusId };
+      statusIdRef.current = statusId;
+      return [...prev, userMsg, statusMsg];
+    });
+
+    // Send the request but indicate we will replace the status message when response arrives
+    await sendQuestion('Analyze prescription', { replaceStatus: true, statusId, skipAddUser: true });
   };
 
   useEffect(() => {
@@ -85,10 +145,10 @@ export default function Chat() {
       <section className="hero">
         <div className="hero-left">
           <div className="hero-title">Prescription Analyzer</div>
-          <div className="hero-sub">AI-Powered Prescription Insights</div>
-          <div className="kpi-box">Understand your prescription better with AI</div>
+          <div className="hero-sub">AI-Powered illegible Handwritten Prescription Insights</div>
+          <div className="kpi-box">Understand your illegible prescription better with AI</div>
           <div className="model-box" style={{ marginTop: '1rem' }}>
-            Model trained and finetuned by R.Sarathkumar and S.Kowshik, B.Tech IT. CEG
+            Model trained and finetuned by R.Sarathkumar and S.Kowshik, B.Tech IT (Final Year), CEG, Anna University
           </div>
         </div>
         <div className="hero-right">

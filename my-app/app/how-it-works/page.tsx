@@ -1,8 +1,18 @@
 export default function HowItWorksPage() {
   return (
     <main className="card" style={{ padding: '2rem' }}>
-      <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '1rem' }}>How it Works</h1>
-      <p className="muted">This page is a placeholder for How It Works. Describe the workflow, features, and user journey here.</p>
+   
+     
+
+      <div style={{ marginTop: 16, borderRadius: 12, overflow: 'hidden', boxShadow: '0 6px 18px rgba(2,6,23,0.12)' }}>
+        <img
+          src="/how-it-works.png"
+          alt="How MediScan Works"
+          style={{ width: '100%', height: 'auto', display: 'block' }}
+        />
+      </div>
+
+      
     </main>
   );
 }
