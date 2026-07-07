@@ -16,7 +16,7 @@
 # os.makedirs(UPLOAD_DIR, exist_ok=True)
 # os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# # ✅ CORS (for frontend + Next.js)
+# #  CORS (for frontend + Next.js)
 # app.add_middleware(
 #     CORSMiddleware,
 #     allow_origins=["*"],
@@ -25,7 +25,7 @@
 #     allow_headers=["*"],
 # )
 
-# # 🔥 MAIN ENDPOINT
+# #  MAIN ENDPOINT
 # @app.post("/analyze")
 # async def analyze(file: UploadFile = File(...)):
 #     try:
@@ -100,19 +100,20 @@
 
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from groq import Groq
+from dotenv import load_dotenv
 
 import os
 import base64
 import json
 
+load_dotenv()
+
 app = FastAPI()
 
 api_key = os.getenv("GROQ_API_KEY")
-if not api_key:
-    raise RuntimeError("GROQ_API_KEY environment variable is required")
-
-client = Groq(api_key=api_key)
+client = Groq(api_key=api_key) if api_key else None
 
 # CORS
 app.add_middleware(
@@ -136,6 +137,12 @@ async def analyze(
     history: str | None = Form(None),
 ):
     try:
+        if not client:
+            return JSONResponse(
+                status_code=500,
+                content={"error": "GROQ_API_KEY is not configured. Set it in your environment or .env file before running analysis."},
+            )
+
         file_bytes = await file.read()
         print(f"📥 File received: {file.filename}")
 

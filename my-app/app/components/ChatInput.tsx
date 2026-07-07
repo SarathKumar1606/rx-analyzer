@@ -13,7 +13,7 @@ export default function ChatInput({
   onSubmit: (e: FormEvent) => void;
   isLoading: boolean;
 }) {
-  return (
+  return   (
     <form onSubmit={onSubmit} className="input-row white">
       <input
         className="text-input"
