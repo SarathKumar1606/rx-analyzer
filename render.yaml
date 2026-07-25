@@ -12,6 +12,9 @@ services:
       - key: GROQ_API_KEY
         sync: false
         value: ""
+      - key: GROQ_MODEL
+        sync: false
+        value: "llama-3.3-70b-versatile"
     autoDeploy: true
 
   - name: rx-analyzer-frontend

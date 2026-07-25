@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import MessageList from './components/MessageList';
 import ChatInput from './components/ChatInput';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://rx-analyzer-backend.onrender.com';
 
 export default function Chat() {
   const [input, setInput] = useState('');

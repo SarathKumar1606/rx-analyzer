@@ -100,19 +100,27 @@
 
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from groq import Groq
+from dotenv import load_dotenv
 
 import os
 import base64
 import json
 
+load_dotenv()
+
 app = FastAPI()
 
 api_key = os.getenv("GROQ_API_KEY")
-if not api_key:
-    raise RuntimeError("GROQ_API_KEY environment variable is required")
+client = Groq(api_key=api_key) if api_key else None
 
-client = Groq(api_key=api_key)
+
+def resolve_model_name() -> str:
+    configured_model = os.getenv("GROQ_MODEL")
+    if configured_model:
+        return configured_model
+    return "llama-3.3-70b-versatile"
 
 # CORS
 app.add_middleware(
@@ -136,6 +144,12 @@ async def analyze(
     history: str | None = Form(None),
 ):
     try:
+        if not client:
+            return JSONResponse(
+                status_code=500,
+                content={"error": "GROQ_API_KEY is not configured. Set it in your environment or .env file before running analysis."},
+            )
+
         file_bytes = await file.read()
         print(f"📥 File received: {file.filename}")
 
@@ -288,7 +302,7 @@ STYLE:
         user_prompt = f"{prompt_text}\n\nConversation history:\n{history_text}\n\nCurrent user question:\n{question}"
 
         completion = client.chat.completions.create(
-            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            model=resolve_model_name(),
             messages=[
                 {
                     "role": "user",
