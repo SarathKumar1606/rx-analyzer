@@ -1,12 +1,9 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "my-app/package.json", "use": "@vercel/next" },
-    { "src": "backend/main.py", "use": "@vercel/python" }
-  ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "backend/main.py" },
-    { "src": "/(.*)", "dest": "my-app/.next/index" }
-  ]
+  "functions": {
+    "api/**/*.py": {
+      "runtime": "python3.11"
+    }
+  }
 }
 

@@ -107,6 +107,7 @@ from dotenv import load_dotenv
 import os
 import base64
 import json
+from typing import Optional
 
 load_dotenv()
 
@@ -141,7 +142,7 @@ async def health():
 async def analyze(
     file: UploadFile = File(...),
     question: str = Form(...),
-    history: str | None = Form(None),
+    history: Optional[str] = Form(None),
 ):
     try:
         if not client:
