@@ -16,7 +16,7 @@
 # os.makedirs(UPLOAD_DIR, exist_ok=True)
 # os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# # ✅ CORS (for frontend + Next.js)
+# #  CORS (for frontend + Next.js)
 # app.add_middleware(
 #     CORSMiddleware,
 #     allow_origins=["*"],
@@ -25,7 +25,7 @@
 #     allow_headers=["*"],
 # )
 
-# # 🔥 MAIN ENDPOINT
+# #  MAIN ENDPOINT
 # @app.post("/analyze")
 # async def analyze(file: UploadFile = File(...)):
 #     try:
