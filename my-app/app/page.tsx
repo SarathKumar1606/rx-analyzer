@@ -4,7 +4,27 @@ import { useState, useRef, useEffect } from 'react';
 import MessageList from './components/MessageList';
 import ChatInput from './components/ChatInput';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
+function getApiBaseUrl() {
+  const configured = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+
+  if (!configured) {
+    return '/api';
+  }
+
+  const normalized = configured.replace(/\/+$/, '');
+
+  if (/^https?:\/\//i.test(normalized)) {
+    return normalized.endsWith('/api') ? normalized : `${normalized}/api`;
+  }
+
+  if (normalized === '' || normalized === '/') {
+    return '/api';
+  }
+
+  return normalized.endsWith('/api') ? normalized : `${normalized}/api`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 export default function Chat() {
   const [input, setInput] = useState('');
